@@ -4,7 +4,6 @@ import geopandas as gpd
 from tqdm import tqdm
 
 
-# TODO: 기능 구현
 def check_valid_dtg(candidate_links: set, input_df: gpd.GeoDataFrame):
     '''
     매칭 모듈 정확도 향상을 위해 비교적 완전한 데이터인지 검증
