@@ -18,7 +18,7 @@ class AccidentMapMatchingProcessor(AccidentDataPreprocessing, AccidentMatching):
     def __init__(self, taas_data_path: str, ps_data_path: str, moct_network_path: str):
         AccidentDataPreprocessing.__init__(self, taas_data_path, ps_data_path, moct_network_path)
         AccidentMatching.__init__(self, radius=100)
-        self._ignore_error = True
+        self._ignore_error = False
 
     @property
     def error_ignore(self):
@@ -56,13 +56,13 @@ class AccidentMapMatchingProcessor(AccidentDataPreprocessing, AccidentMatching):
             )
             self.accident_day_df = pd.concat([self.accident_day_df, ps_on_candidate_links_with_timebin_gdf], ignore_index=True)
 
-        if self.error_ignore:
-            try:
-                check_valid_dtg(candidate_links=self.candidate_links, input_df=self.accident_day_df)
-            except MatchingInvalidError:
-                print('**[WARNING]** DTG 데이터가 부족하여 정확한 점수를 산출할 수 없습니다.')
-        else:
-            check_valid_dtg(candidate_links=self.candidate_links, input_df=self.accident_day_df)
+        # if self._ignore_error:
+        #     try:
+        #         check_valid_dtg(candidate_links=self.candidate_links, input_df=self.accident_day_df)
+        #     except MatchingInvalidError:
+        #         print('**[WARNING]** DTG 데이터가 부족하여 정확한 점수를 산출할 수 없습니다.')
+        # else:
+        #     check_valid_dtg(candidate_links=self.candidate_links, input_df=self.accident_day_df)
 
         logging.info(f"사고 당일 데이터 로드 완료. 결과: 총 {len(self.accident_day_df)}개 데이터 포인트 추출")
 
@@ -97,13 +97,13 @@ class AccidentMapMatchingProcessor(AccidentDataPreprocessing, AccidentMatching):
                 )
                 self.other_day_df = pd.concat([self.other_day_df, ps_on_candidate_links_with_timebin_gdf], ignore_index=True)
 
-            if self.error_ignore:
-                try:
-                    check_valid_dtg(candidate_links=self.candidate_links, input_df=self.other_day_df)
-                except MatchingInvalidError:
-                    print('**[WARNING]** DTG 데이터가 부족하여 정확한 점수를 산출할 수 없습니다.')
-            else:
-                check_valid_dtg(candidate_links=self.candidate_links, input_df=self.accident_day_df)
+            # if self._ignore_error:
+            #     try:
+            #         check_valid_dtg(candidate_links=self.candidate_links, input_df=self.other_day_df)
+            #     except MatchingInvalidError:
+            #         print('**[WARNING]** DTG 데이터가 부족하여 정확한 점수를 산출할 수 없습니다.')
+            # else:
+            #     check_valid_dtg(candidate_links=self.candidate_links, input_df=self.accident_day_df)
 
             other_day_score = self.candidate_link_score(ps_on_candidate_links_gdf=self.other_day_df)
             if save_score:
@@ -114,7 +114,6 @@ class AccidentMapMatchingProcessor(AccidentDataPreprocessing, AccidentMatching):
 
     def get_accident_day_score_diff(self, save_score=False):
         self.accident_day_dataloader()
-        # accident_day_df = self.accident_day_df # 'link_id', 'trip_id', 'pointTime', 'speed', 'geometry', 'time_bin_index'
         logging.info("사고 당일 데이터 기반 소통 점수 산출 중... ")
         accident_day_score = self.candidate_link_score(ps_on_candidate_links_gdf=self.accident_day_df)
 
@@ -288,7 +287,7 @@ class AccidentMapMatchingProcessor(AccidentDataPreprocessing, AccidentMatching):
             result = pd.DataFrame({
                 "result_score": max_score
             })
-
+            result.to_csv('result/final_score.csv', encoding='cp949')
         return result
 
     def run(self):
@@ -308,8 +307,8 @@ class AccidentMapMatchingProcessor(AccidentDataPreprocessing, AccidentMatching):
 
 
 def main():
-    taas_data_path = 'taas_dataset/20231214.csv'
-    ps_data_path = 'traj_sample/alltraj_20231214.txt'
+    taas_data_path = 'taas_dataset/20231211.csv'
+    ps_data_path = 'traj_sample/alltraj_20231211.txt'
     moct_network_path = 'moct_link/link'
 
     accidentlinkmatching = AccidentMapMatchingProcessor(taas_data_path, ps_data_path, moct_network_path)
